@@ -1,0 +1,79 @@
+# Local environment and overrides
+.env
+.env.*
+!.env.example
+!.env.*.example
+/compose.override.yaml
+/compose.override.yml
+/docker-compose.override.yaml
+/docker-compose.override.yml
+
+# Private application state
+# These directories may contain credentials, QQ login sessions, chat history,
+# uploaded media, logs, databases, and backups.
+/runtime/
+/backups/
+
+# Upstream projects are separate Git repositories. Keep only upstream/README.md.
+/upstream/*/
+
+# Credentials and private keys
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+credentials*.json
+service-account*.json
+
+# Logs, databases, and transient files
+*.log
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-shm
+*.sqlite-wal
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+/.cache/
+/tmp/
+/temp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Node.js (for local tooling)
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+
+# Editors and IDEs
+/.idea/
+/.vscode/
+*.code-workspace
+
+# Operating-system metadata
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini

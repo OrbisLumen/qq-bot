@@ -1,0 +1,44 @@
+name: qq-bot
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  astrbot:
+    image: ${ASTRBOT_IMAGE:-soulter/astrbot:v4.28.2}
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+    ports:
+      - "127.0.0.1:${ASTRBOT_PORT:-6185}:6185"
+    volumes:
+      - ./runtime/astrbot:/AstrBot/data
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+    networks: [bot]
+
+  napcat:
+    image: ${NAPCAT_IMAGE:-mlikiowa/napcat-docker:v4.18.28}
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-UTC}
+      NAPCAT_UID: ${NAPCAT_UID:-1000}
+      NAPCAT_GID: ${NAPCAT_GID:-1000}
+    ports:
+      - "127.0.0.1:${NAPCAT_PORT:-6099}:6099"
+    volumes:
+      - ./runtime/napcat/config:/app/napcat/config
+      - ./runtime/napcat/qq:/app/.config/QQ
+      # Shared paths allow OneBot to send AstrBot-generated local media.
+      - ./runtime/astrbot:/AstrBot/data
+    depends_on: [astrbot]
+    logging: *logging
+    networks: [bot]
+
+networks:
+  bot:
+    driver: bridge

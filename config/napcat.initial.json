@@ -1,0 +1,23 @@
+{
+  "network": {
+    "httpServers": [],
+    "httpClients": [],
+    "websocketServers": [],
+    "websocketClients": [
+      {
+        "name": "astrbot",
+        "enable": true,
+        "url": "ws://astrbot:6199/ws",
+        "messagePostFormat": "array",
+        "reportSelfMessage": false,
+        "reconnectInterval": 5000,
+        "heartInterval": 30000,
+        "token": "",
+        "debug": false
+      }
+    ]
+  },
+  "musicSignUrl": "",
+  "enableLocalFile2Url": false,
+  "parseMultMsg": false
+}
