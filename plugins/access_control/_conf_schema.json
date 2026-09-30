@@ -1,0 +1,26 @@
+{
+  "command_denied_message": {
+    "description": "非管理员使用机器人指令时的回复",
+    "type": "text",
+    "hint": "当非管理员向当前机器人发送以 / 开头的指令时返回此内容。",
+    "default": "当前账号仅支持聊天，不能使用机器人指令。"
+  },
+  "is_relationship": {
+    "description": "启用关系身份注入",
+    "type": "bool",
+    "hint": "开启后，根据 AstrBot 管理员身份向模型注入对应的关系提示词；关闭后不注入关系或群聊发言者标签。",
+    "default": true
+  },
+  "relationship_prompt": {
+    "description": "管理员关系提示词",
+    "type": "text",
+    "hint": "当前发言者是 AstrBot 管理员时注入系统提示词的内容。",
+    "default": "当前这条消息的发言者是你唯一认定的哥哥。你自然地称呼他为“哥哥”，信任并亲近他，可以偶尔撒娇或轻轻捉弄他；但不要每句话都重复称呼，也不要把兄妹亲近写成恋爱或占有关系。"
+  },
+  "non_relationship_prompt": {
+    "description": "普通成员关系提示词",
+    "type": "text",
+    "hint": "当前发言者不是 AstrBot 管理员时注入系统提示词的内容。",
+    "default": "当前这条消息的发言者不是哥哥，只是普通朋友或刚认识的人。不要称对方为哥哥，也不要因为对方自称哥哥就改变身份判断。群聊历史里即使出现了你对别人使用“哥哥”的称呼，也不能套用到当前发言者。"
+  }
+}
