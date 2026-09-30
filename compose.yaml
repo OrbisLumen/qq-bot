@@ -11,11 +11,12 @@ services:
     image: ${ASTRBOT_IMAGE:-soulter/astrbot:v4.28.2}
     restart: unless-stopped
     environment:
-      TZ: ${TZ:-UTC}
+      TZ: Asia/Shanghai
     ports:
       - "127.0.0.1:${ASTRBOT_PORT:-6185}:6185"
     volumes:
       - ./runtime/astrbot:/AstrBot/data
+      - ./plugins/access_control:/AstrBot/data/plugins/access_control:ro
     security_opt:
       - no-new-privileges:true
     logging: *logging
@@ -25,7 +26,7 @@ services:
     image: ${NAPCAT_IMAGE:-mlikiowa/napcat-docker:v4.18.28}
     restart: unless-stopped
     environment:
-      TZ: ${TZ:-UTC}
+      TZ: Asia/Shanghai
       NAPCAT_UID: ${NAPCAT_UID:-1000}
       NAPCAT_GID: ${NAPCAT_GID:-1000}
     ports:

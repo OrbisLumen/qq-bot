@@ -1,6 +1,6 @@
 # QQ Bot 本地部署
 
-使用 Docker Compose 运行 AstrBot v4.28.2 和 NapCat v4.18.28，可部署在支持相应容器镜像的 macOS 或 Linux 主机上。
+使用 Docker Compose 运行 AstrBot v4.28.2 和 NapCat v4.18.28。支持 Apple Silicon Mac，后续可迁移 Linux 服务器。
 
 ## 项目结构
 
@@ -22,13 +22,13 @@ qq-bot/
 
 ## 启动
 
-确保 Docker Engine 和 Docker Compose 已就绪，然后在本目录执行：
+打开 Docker Desktop，等待引擎就绪，然后在本目录执行：
 
 ```bash
 bash scripts/start.sh
 ```
 
-首次会拉取镜像、创建 `.env` 和运行目录、写入初始 OneBot 配置。脚本支持路径包含空格；在 macOS 上也能查找尚未加入 PATH 的 Docker Desktop 命令。
+首次会拉取镜像、创建 `.env` 和运行目录、写入初始 OneBot 配置。脚本支持路径包含空格，也能自动找到尚未加入 PATH 的 Docker Desktop 命令。
 
 - AstrBot：[http://127.0.0.1:6185](http://127.0.0.1:6185)
 - NapCat：[http://127.0.0.1:6099/webui](http://127.0.0.1:6099/webui)
@@ -40,8 +40,10 @@ bash scripts/start.sh
 1. 运行 `bash scripts/logs.sh astrbot`，找到初始账号和随机密码，在 AstrBot 登录并修改密码。Ctrl+C 只退出日志查看。
 2. 运行 `bash scripts/logs.sh napcat`，找到 WebUI Token。在 NapCat 网页登录，用 QQ 小号扫码并在手机确认。
 3. 初始配置已将 NapCat 的 WebSocket 客户端指向 `ws://astrbot:6199/ws`，AstrBot 的 `qq-napcat` OneBot 适配器监听 `0.0.0.0:6199`。登录后检查 AstrBot 日志是否出现适配器已连接。
-4. 在 AstrBot 模型提供商页面添加所需服务，填写自己的 API Key，选择可用模型并设为默认。Key 在网页中填写，不要提交到 Git。
+4. 在 AstrBot 模型提供商页面添加 DeepSeek，填写自己的 API Key，选择可用模型并设为默认。Key 在网页中填写，不要提交到 Git。
 5. 先在受控会话中测试；在 AstrBot 配置管理员 QQ、会话白名单和群聊唤醒条件。首次启用前检查工具权限，只开启需要的插件。
+
+当前部署启用了本地 `access_control` 插件：AstrBot WebUI 中配置的管理员可使用 `/` 指令，并会被角色识别为哥哥；其他账号只能普通聊天。群聊消息必须直接 @ 机器人才能触发，私聊仍可直接聊天。若只希望一个账号拥有该身份，请只配置一个管理员；插件按 AstrBot 的管理员身份判断，不硬编码 QQ 号。
 
 若 NapCat 登录后没有继承模板，在网络配置中新增/检查启用的 WebSocket 客户端：URL 为 `ws://astrbot:6199/ws`，消息格式为 `array`。AstrBot 和 NapCat 的 OneBot Token 必须相同。初始 Token 为空，端口仅在本项目 Docker 网络内使用；如增加其他连接方，请在两个后台设置相同随机 Token。
 
@@ -55,7 +57,7 @@ bash scripts/stop.sh
 bash scripts/start.sh
 ```
 
-`stop.sh` 保留容器和数据。`unless-stopped` 会在异常退出后重启；主动停止的容器需手动启动。关闭浏览器或退出终端不会停止服务，但主机休眠、关机或 Docker 退出会影响运行。
+`stop.sh` 保留容器和数据。`unless-stopped` 会在异常退出后重启；主动停止的容器需手动启动。关闭浏览器或退出终端不会停止服务，但 Mac 休眠、关机或 Docker 退出会影响运行。
 
 管理端口只绑定 `127.0.0.1`；6199 不向宿主机发布。QQ 与模型访问通过容器正常出网。
 日志按每个容器最多 3 × 10 MB 轮转；应用写入 runtime 内的日志和媒体仍需定期查看磁盘占用。
@@ -72,7 +74,7 @@ bash scripts/start.sh
 升级前先备份，然后修改 `.env` 的镜像版本并启动。保留旧版本号和对应备份：应用可能迁移数据库，回滚时仅改回镜像不一定够用。
 避免在 WebUI 中原地升级核心程序，否则运行版本会偏离 Compose 指定版本。
 
-迁移到另一台主机时，复制部署仓库、`.env` 和停机备份。在 Linux 目标主机上，将 `.env` 中 NAPCAT_UID/GID 改成目标用户的 `id -u` / `id -g`，确认目录权限后启动。QQ 可能需要重新扫码；不要让两台主机同时登录同一个账号。
+迁移 Linux 时复制部署仓库、`.env` 和停机备份。在空部署目录恢复数据，将 `.env` 中 NAPCAT_UID/GID 改成目标用户的 `id -u` / `id -g`，确认目录权限后启动。QQ 可能需要重新扫码。不要让本地和服务器同时登录同一个小号。
 
 不需要克隆 upstream 源码也能启动部署。自定义插件若另有挂载，应随源码仓库一起迁移。
 
