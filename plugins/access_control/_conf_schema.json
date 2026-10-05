@@ -14,8 +14,32 @@
   "is_relationship": {
     "description": "启用关系身份注入",
     "type": "bool",
-    "hint": "开启后，根据 AstrBot 管理员身份向模型注入对应的关系提示词；关闭后不注入关系或群聊发言者标签。",
+    "hint": "开启后，根据 AstrBot 管理员身份绑定发言者关系并注入提示词；关闭后停止关系注入和固定身份回复。",
     "default": true
+  },
+  "relationship_label": {
+    "description": "特殊关系称呼",
+    "type": "string",
+    "hint": "管理员对应的关系称呼，例如哥哥。用于系统中的身份绑定和明确身份询问的匹配；请与管理员关系提示词保持一致。",
+    "default": "哥哥"
+  },
+  "identity_reply_enabled": {
+    "description": "直接回答明确的身份询问",
+    "type": "bool",
+    "hint": "对“我还是你哥哥吗”“叫哥哥”等完整短句，按当前账号关系直接回复，不调用模型。群聊须直接 @ 当前机器人；关闭后由模型正常回答。",
+    "default": true
+  },
+  "relationship_identity_reply": {
+    "description": "管理员身份询问回复",
+    "type": "text",
+    "hint": "管理员询问身份或要求称呼时的固定回复。{relationship_label} 会替换为特殊关系称呼。",
+    "default": "当然是呀，{relationship_label}。"
+  },
+  "non_relationship_identity_reply": {
+    "description": "普通成员身份询问回复",
+    "type": "text",
+    "hint": "普通成员询问是否具有特殊关系或要求该称呼时的固定回复。可使用 {relationship_label} 引用特殊关系称呼。",
+    "default": "我们是普通朋友呀，这个称呼不能随便叫。"
   },
   "relationship_prompt": {
     "description": "管理员关系提示词",

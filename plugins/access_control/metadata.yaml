@@ -1,4 +1,4 @@
 name: access_control
-desc: Ignore configured QQ senders and restrict commands to administrators.
+desc: Ignore configured QQ senders, restrict commands, and inject speaker relationships.
 author: qq-bot
-version: 1.3.0
+version: 1.4.0
