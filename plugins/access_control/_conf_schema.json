@@ -1,4 +1,10 @@
 {
+  "ignored_qq_ids": {
+    "description": "忽略的 QQ 号列表",
+    "type": "list",
+    "hint": "每项填写一个 QQ 号，可添加或删除。适用于所有 QQ 群聊和私聊；这些账号的消息将被静默忽略，不触发回复，也不写入新的群聊记录或上下文。管理员账号也不会绕过此列表。留空表示不过滤。",
+    "default": []
+  },
   "command_denied_message": {
     "description": "非管理员使用机器人指令时的回复",
     "type": "text",

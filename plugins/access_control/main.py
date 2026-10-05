@@ -1,5 +1,6 @@
 import hashlib
 import html
+from sys import maxsize
 
 from astrbot.api import AstrBotConfig
 from astrbot.api.event import AstrMessageEvent, filter
@@ -14,6 +15,22 @@ class AccessControl(Star):
     def __init__(self, context: Context, config: AstrBotConfig) -> None:
         super().__init__(context)
         self.config = config
+
+    @filter.event_message_type(filter.EventMessageType.ALL, priority=maxsize + 1)
+    async def ignore_sender(self, event: AstrMessageEvent) -> None:
+        """Drop ignored QQ senders before built-in handlers record their messages."""
+        if event.get_platform_name() != "aiocqhttp":
+            return
+
+        sender_id = str(event.get_sender_id()).strip()
+        if sender_id and any(
+            sender_id == str(qq).strip()
+            for qq in self.config.get("ignored_qq_ids", [])
+        ):
+            # Built-in session control / empty mentions use maxsize, and group
+            # history persistence uses maxsize - 2. Stop before both so these
+            # messages cannot start replies or become future group context.
+            event.stop_event()
 
     @filter.event_message_type(filter.EventMessageType.ALL, priority=1000)
     async def enforce(self, event: AstrMessageEvent):

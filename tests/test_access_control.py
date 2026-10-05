@@ -1,5 +1,7 @@
 import asyncio
 import importlib.util
+import inspect
+import json
 import sys
 import types
 import unittest
@@ -22,7 +24,11 @@ class _Filter:
 
     @staticmethod
     def event_message_type(*_args, **_kwargs):
-        return lambda function: function
+        def decorate(function):
+            function.event_priority = _kwargs.get("priority", 0)
+            return function
+
+        return decorate
 
     @staticmethod
     def on_llm_request(*_args, **_kwargs):
@@ -81,15 +87,19 @@ class FakeEvent:
         private: bool = False,
         self_id: str = "bot",
         admin: bool = False,
+        sender_id: str | int = "sender",
+        platform: str = "aiocqhttp",
     ):
         self.messages = messages
         self.private = private
         self.self_id = self_id
         self.admin = admin
+        self.sender_id = sender_id
+        self.platform = platform
         self.stopped = False
 
     def get_platform_name(self):
-        return "aiocqhttp"
+        return self.platform
 
     def is_admin(self):
         return self.admin
@@ -104,7 +114,7 @@ class FakeEvent:
         return self.self_id
 
     def get_sender_id(self):
-        return "sender"
+        return self.sender_id
 
     def get_sender_name(self):
         return "Sender"
@@ -116,13 +126,16 @@ class FakeEvent:
         self.stopped = True
 
 
-def enforce(event, message="当前账号仅支持聊天，不能使用机器人指令。"):
+def enforce(event, message="当前账号仅支持聊天，不能使用机器人指令。", **overrides):
     plugin = ACCESS_CONTROL.AccessControl(
         None,
-        {"command_denied_message": message},
+        {"command_denied_message": message, **overrides},
     )
 
     async def collect():
+        await plugin.ignore_sender(event)
+        if event.stopped:
+            return []
         return [result async for result in plugin.enforce(event)]
 
     return asyncio.run(collect())
@@ -142,6 +155,136 @@ def inject_relationship(event, **overrides):
 
 
 class AccessControlTests(unittest.TestCase):
+    def test_ignored_group_sender_is_silently_stopped(self):
+        event = FakeEvent([At("bot"), Plain("hello")], sender_id="3889001741")
+
+        self.assertEqual(enforce(event, ignored_qq_ids=["3889001741"]), [])
+        self.assertTrue(event.stopped)
+
+    def test_ignored_background_group_message_is_stopped(self):
+        event = FakeEvent([Plain("自动通知")], sender_id="3889001741")
+
+        self.assertEqual(enforce(event, ignored_qq_ids=["3889001741"]), [])
+        self.assertTrue(event.stopped)
+
+    def test_ignored_command_does_not_send_denial_reply(self):
+        event = FakeEvent([At("bot"), Plain(" //reset")], sender_id="3889001741")
+
+        self.assertEqual(enforce(event, ignored_qq_ids=["3889001741"]), [])
+        self.assertTrue(event.stopped)
+
+    def test_ignored_admin_does_not_bypass_filter(self):
+        event = FakeEvent([Plain("hello")], sender_id="3153577174", admin=True)
+
+        self.assertEqual(enforce(event, ignored_qq_ids=["3153577174"]), [])
+        self.assertTrue(event.stopped)
+
+    def test_ignored_private_sender_is_stopped(self):
+        event = FakeEvent([Plain("hello")], sender_id="3889001741", private=True)
+
+        self.assertEqual(enforce(event, ignored_qq_ids=["3889001741"]), [])
+        self.assertTrue(event.stopped)
+
+    def test_ignore_list_accepts_numeric_ids_and_surrounding_whitespace(self):
+        for sender_id, ignored_qq_ids in [
+            (3889001741, [" 3889001741 "]),
+            ("3889001741", [3889001741]),
+        ]:
+            with self.subTest(sender_id=sender_id):
+                event = FakeEvent([Plain("hello")], sender_id=sender_id)
+                self.assertEqual(enforce(event, ignored_qq_ids=ignored_qq_ids), [])
+                self.assertTrue(event.stopped)
+
+    def test_ignore_list_uses_exact_account_matches(self):
+        event = FakeEvent([Plain("hello")], sender_id="38890017410")
+
+        self.assertEqual(enforce(event, ignored_qq_ids=["3889001741"]), [])
+        self.assertFalse(event.stopped)
+
+    def test_ignore_list_does_not_affect_other_platforms(self):
+        event = FakeEvent(
+            [Plain("hello")], sender_id="3889001741", platform="other-platform"
+        )
+
+        self.assertEqual(enforce(event, ignored_qq_ids=["3889001741"]), [])
+        self.assertFalse(event.stopped)
+
+    def test_webui_list_can_add_and_remove_senders(self):
+        schema_path = (
+            Path(__file__).resolve().parents[1]
+            / "plugins" / "access_control" / "_conf_schema.json"
+        )
+        schema = json.loads(schema_path.read_text())
+        self.assertEqual(schema["ignored_qq_ids"]["type"], "list")
+        self.assertEqual(schema["ignored_qq_ids"]["default"], [])
+        config = {key: item["default"] for key, item in schema.items()}
+
+        async def check_saved_config():
+            for ignored_qq_ids, should_stop in [
+                ([], False), (["3889001741"], True), ([], False)
+            ]:
+                # WebUI persists JSON and reloads the plugin with that config.
+                config["ignored_qq_ids"] = ignored_qq_ids
+                plugin = ACCESS_CONTROL.AccessControl(
+                    None, json.loads(json.dumps(config))
+                )
+                event = FakeEvent([Plain("hello")], sender_id="3889001741")
+                await plugin.ignore_sender(event)
+                self.assertEqual(event.stopped, should_stop)
+
+        asyncio.run(check_saved_config())
+
+    def test_filter_precedes_builtin_session_and_history_handlers(self):
+        calls = []
+        plugin = ACCESS_CONTROL.AccessControl(None, {"ignored_qq_ids": ["3889001741"]})
+
+        async def session_control(event):
+            calls.append("session_control")
+
+        async def empty_mention(event):
+            calls.append("empty_mention")
+
+        async def persist_history(event):
+            calls.append("history")
+
+        async def group_context(event):
+            calls.append("group_context")
+
+        # Match AstrBot's descending priority order and stop propagation. The
+        # built-in handlers use maxsize through maxsize - 2 and zero for ICL.
+        handlers = [
+            (0, group_context),
+            (sys.maxsize - 2, persist_history),
+            (sys.maxsize - 1, empty_mention),
+            (sys.maxsize, session_control),
+            (plugin.ignore_sender.event_priority, plugin.ignore_sender),
+            (plugin.enforce.event_priority, plugin.enforce),
+        ]
+
+        async def dispatch(event):
+            for _, handler in sorted(handlers, key=lambda item: -item[0]):
+                if event.stopped:
+                    break
+                result = handler(event)
+                if inspect.isasyncgen(result):
+                    async for _ in result:
+                        pass
+                else:
+                    await result
+
+        for messages in [[At("bot")], [Plain("notice")]]:
+            event = FakeEvent(messages, sender_id="3889001741")
+            asyncio.run(dispatch(event))
+            self.assertTrue(event.stopped)
+            self.assertEqual(calls, [])
+
+        event = FakeEvent([Plain("hello")], sender_id="3153577174")
+        asyncio.run(dispatch(event))
+        self.assertFalse(event.stopped)
+        self.assertEqual(
+            calls, ["session_control", "empty_mention", "history", "group_context"]
+        )
+
     def test_group_command_addressed_to_another_bot_is_ignored(self):
         event = FakeEvent([At("other-bot"), Plain(" /help")])
 

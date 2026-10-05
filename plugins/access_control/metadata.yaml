@@ -1,4 +1,4 @@
 name: access_control
-desc: Restrict group replies to direct mentions and commands to administrators.
+desc: Ignore configured QQ senders and restrict commands to administrators.
 author: qq-bot
-version: 1.2.0
+version: 1.3.0
