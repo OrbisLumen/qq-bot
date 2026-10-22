@@ -11,6 +11,8 @@ qq-bot/
 ├── config/                # 首次启动配置；只在运行数据不存在时复制
 ├── scripts/               # 启停、日志、备份
 ├── plugins/               # 自定义插件源码
+├── tests/                 # 机器人插件测试
+├── uestc-checkin/         # 独立签到程序、容器配置与部署说明
 ├── upstream/              # 官方源码，独立 Git 仓库
 │   ├── AstrBot/
 │   └── NapCatQQ/
@@ -18,7 +20,15 @@ qq-bot/
 └── backups/               # 包含敏感信息的备份；不入 Git
 ```
 
-根目录是部署仓库，上游源码由各自仓库管理。容器使用预构建镜像，暂不从源码构建。
+根目录管理 QQ Bot 部署、插件和 `uestc-checkin` 源码；上游源码由各自仓库管理。QQ Bot 容器使用预构建镜像，暂不从源码构建。
+
+签到项目使用独立 Compose 配置和数据卷，入口见 [uestc-checkin 使用说明](uestc-checkin/README.md)，云端运维见 [部署说明](uestc-checkin/DEPLOYMENT.md)。
+
+## Git 管理约定
+
+按功能分批提交：机器人部署配置、插件、签到程序、部署工具和文档。每次只暂存对应路径，使用 `git diff --cached` 检查后提交；跨文件的同一功能放在同一次提交。
+
+`.env`、登录会话、运行数据、备份、缓存和本地虚拟环境不纳入 Git；配置模板使用 `.env.example`。`uestc-checkin` 随本仓库管理，无需另建嵌套仓库。
 
 ## 启动
 
