@@ -1,6 +1,6 @@
 # QQ Bot 本地部署
 
-使用 Docker Compose 运行 AstrBot v4.28.2 和 NapCat v4.18.28。支持 Apple Silicon Mac，后续可迁移 Linux 服务器。
+使用 Docker Compose 运行 AstrBot v4.29.0-beta.2（预发布版本）和 NapCat v4.18.37。支持 Apple Silicon Mac，后续可迁移 Linux 服务器。
 
 ## 项目结构
 

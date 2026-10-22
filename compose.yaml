@@ -8,7 +8,7 @@ x-logging: &logging
 
 services:
   astrbot:
-    image: ${ASTRBOT_IMAGE:-soulter/astrbot:v4.28.2}
+    image: ${ASTRBOT_IMAGE:-soulter/astrbot:v4.29.0-beta.2}
     restart: unless-stopped
     environment:
       TZ: Asia/Shanghai
@@ -23,7 +23,7 @@ services:
     networks: [bot]
 
   napcat:
-    image: ${NAPCAT_IMAGE:-mlikiowa/napcat-docker:v4.18.28}
+    image: ${NAPCAT_IMAGE:-mlikiowa/napcat-docker:v4.18.37}
     restart: unless-stopped
     environment:
       TZ: Asia/Shanghai
