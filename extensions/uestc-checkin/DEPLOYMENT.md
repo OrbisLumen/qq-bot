@@ -2,6 +2,10 @@
 
 目标目录为腾讯云服务器 `/opt/uestc-checkin`。所有项目命令在服务器执行，使用 Docker 内的 Python 和 Chromium。`scripts/cloud.sh` 自动加载机器人网络覆盖配置，避免遗漏 NapCat 网络。
 
+仓库内源码已从 `uestc-checkin/` 移到 `extensions/uestc-checkin/`。独立部署时，将此目录的内容同步到 `/opt/uestc-checkin`，不要多嵌套一层目录；`.env` 与数据卷单独管理。若服务器使用整仓库检出，则先进入 `extensions/uestc-checkin/` 再执行项目命令。
+
+本次仅调整源码目录；Compose 项目名 `uestc-checkin`、数据卷 `uestc-checkin_checkin-data`、镜像名称和服务器安装目录均保持不变。已有服务器无需因目录整理而重新创建服务或数据卷。
+
 ```bash
 ssh -i ~/.ssh/mac.pem ubuntu@你的服务器
 cd /opt/uestc-checkin

@@ -1,5 +1,7 @@
 # uestc-checkin
 
+本项目位于仓库的 `extensions/uestc-checkin/`，是独立运行的 NapCat HTTP 扩展。仓库根目录下先执行 `cd extensions/uestc-checkin`，再运行本文命令。通用接入约定见 [NapCat HTTP 接入](../../docs/napcat-http.md)。
+
 Python + Playwright 容器内 Chromium + 内置 Geolocation + JSON 状态 + NapCat OneBot 私聊通知。开发、测试、登录和调度均由 Docker 执行，不使用本机 Python 或 Chrome 运行项目。生产目标为腾讯云独立执行，部署和运维见 [DEPLOYMENT.md](DEPLOYMENT.md)。
 
 

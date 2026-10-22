@@ -1,6 +1,16 @@
-# QQ Bot 本地部署
+# QQ Bot 部署与扩展
 
 使用 Docker Compose 运行 AstrBot v4.29.0-beta.2（预发布版本）和 NapCat v4.18.37。支持 Apple Silicon Mac，后续可迁移 Linux 服务器。
+
+本仓库同时管理机器人基础部署、AstrBot 插件，以及通过 NapCat OneBot HTTP API 交互的独立应用。各扩展独立配置、运行和部署，共用已有 NapCat 连接。
+
+| 入口 | 内容 |
+| --- | --- |
+| 本文下方 | QQ Bot 启动、配置、备份和迁移 |
+| [AstrBot 插件](plugins/README.md) | 在 AstrBot 进程内运行的插件 |
+| [独立扩展](extensions/README.md) | 扩展目录、新项目约定和验证清单 |
+| [NapCat HTTP 接入](docs/napcat-http.md) | 网络、鉴权、消息发送和事件接收边界 |
+| [开发与 Git 管理](docs/development.md) | 修改范围、检查命令、分批提交方式 |
 
 ## 项目结构
 
@@ -12,7 +22,10 @@ qq-bot/
 ├── scripts/               # 启停、日志、备份
 ├── plugins/               # 自定义插件源码
 ├── tests/                 # 机器人插件测试
-├── uestc-checkin/         # 独立签到程序、容器配置与部署说明
+├── extensions/            # 独立运行的 NapCat HTTP 扩展
+│   ├── README.md          # 扩展索引与新项目约定
+│   └── uestc-checkin/     # 签到程序、测试、容器配置与部署说明
+├── docs/                  # 跨项目接入说明与开发约定
 ├── upstream/              # 官方源码，独立 Git 仓库
 │   ├── AstrBot/
 │   └── NapCatQQ/
@@ -20,15 +33,15 @@ qq-bot/
 └── backups/               # 包含敏感信息的备份；不入 Git
 ```
 
-根目录管理 QQ Bot 部署、插件和 `uestc-checkin` 源码；上游源码由各自仓库管理。QQ Bot 容器使用预构建镜像，暂不从源码构建。
+根目录 Compose 只管理 AstrBot 与 NapCat，各扩展使用自己的 Compose 项目。上游源码由各自仓库管理。QQ Bot 容器使用预构建镜像，暂不从源码构建。
 
-签到项目使用独立 Compose 配置和数据卷，入口见 [uestc-checkin 使用说明](uestc-checkin/README.md)，云端运维见 [部署说明](uestc-checkin/DEPLOYMENT.md)。
+签到项目入口见 [uestc-checkin 使用说明](extensions/uestc-checkin/README.md)，云端运维见 [部署说明](extensions/uestc-checkin/DEPLOYMENT.md)。
 
 ## Git 管理约定
 
-按功能分批提交：机器人部署配置、插件、签到程序、部署工具和文档。每次只暂存对应路径，使用 `git diff --cached` 检查后提交；跨文件的同一功能放在同一次提交。
+按功能分批提交：机器人部署配置、插件、各独立扩展和跨项目文档。每次只暂存对应路径，使用 `git diff --cached` 检查后提交；跨文件的同一功能放在同一次提交。具体检查和示例见 [开发约定](docs/development.md)。
 
-`.env`、登录会话、运行数据、备份、缓存和本地虚拟环境不纳入 Git；配置模板使用 `.env.example`。`uestc-checkin` 随本仓库管理，无需另建嵌套仓库。
+`.env`、登录会话、运行数据、备份、缓存和本地虚拟环境不纳入 Git；配置模板使用 `.env.example`。`extensions/` 下的源码随本仓库管理，无需另建嵌套仓库。
 
 ## 启动
 
